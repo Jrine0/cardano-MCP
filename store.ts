@@ -71,6 +71,12 @@ export const useStore = create<AppState>((set, get) => ({
   edges: [],
   logs: [],
   isGenerating: false,
+  isSettingsOpen: false,
+  settings: {
+    openaiKey: '',
+    perplexityKey: '',
+    cardanoRpcUrl: 'https://cardano-mainnet.blockfrost.io/api/v0',
+  },
 
   addMessage: (msg) => {
     const newMessage: Message = {
@@ -121,6 +127,10 @@ export const useStore = create<AppState>((set, get) => ({
   toggleCollapse: () => set((state) => ({ 
     rightPanelCollapsed: !state.rightPanelCollapsed 
   })),
+  
+  toggleSettings: () => set((state) => ({ isSettingsOpen: !state.isSettingsOpen })),
+  
+  updateSettings: (newSettings) => set((state) => ({ settings: { ...state.settings, ...newSettings } })),
 
   startSimulation: async (prompt) => {
     const state = get();

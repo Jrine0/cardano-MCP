@@ -1,91 +1,178 @@
-import React from 'react';
-import { Settings, Maximize2, Minimize2, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Settings, Maximize2, Minimize2, PanelLeftClose, PanelLeftOpen, Maximize, Minimize, LayoutTemplate } from 'lucide-react';
 import { useStore } from '../store';
 import { ChatPanel } from './ChatPanel';
 import { WorkflowPanel } from './WorkflowPanel';
 import { PreviewPanel } from './PreviewPanel';
+import { SettingsModal } from './SettingsModal';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const Layout = () => {
-  const { viewMode, activeTab, setTab, rightPanelCollapsed, toggleCollapse } = useStore();
+  const { viewMode, activeTab, setTab, rightPanelCollapsed, toggleCollapse, toggleSettings } = useStore();
+  const [isMobile, setIsMobile] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isSidebarOpen, setSidebarOpen] = useState(true);
+
+  // Responsive Check
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Browser Fullscreen Handler
+  const toggleBrowserFullScreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().then(() => setIsFullscreen(true)).catch(console.error);
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().then(() => setIsFullscreen(false));
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  // When view mode changes to split-view, ensure sidebar is open initially
+  useEffect(() => {
+    if (viewMode === 'split-view') {
+      setSidebarOpen(true);
+    }
+  }, [viewMode]);
 
   return (
-    <div className="flex flex-col h-screen w-full bg-bg-primary text-text-primary font-sans selection:bg-accent-primary/30">
+    <div className="flex flex-col h-screen w-full bg-background text-foreground font-sans overflow-hidden">
       
       {/* Header */}
-      <header className="h-16 border-b border-border-subtle flex items-center justify-between px-6 bg-bg-primary/80 backdrop-blur sticky top-0 z-50">
+      <header className="h-14 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-4 sticky top-0 z-50 shrink-0">
         <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-primary to-accent-secondary flex items-center justify-center font-bold text-white shadow-lg shadow-accent-primary/20">
-                8
+            {/* Sidebar Toggle (Only visible in split view) */}
+            {viewMode === 'split-view' && !isMobile && (
+              <button 
+                onClick={() => setSidebarOpen(!isSidebarOpen)}
+                className="p-2 hover:bg-muted rounded-md text-muted-foreground hover:text-foreground transition-colors mr-2"
+                title={isSidebarOpen ? "Collapse Sidebar" : "Open Sidebar"}
+              >
+                {isSidebarOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
+              </button>
+            )}
+
+            <div className="w-8 h-8 rounded-lg bg-secondary/80 border border-border flex items-center justify-center font-bold text-foreground shadow-sm">
+                <LayoutTemplate size={18} />
             </div>
-            <span className="font-semibold text-lg tracking-tight">agent8</span>
+            <span className="font-semibold text-lg tracking-tight hidden sm:block">agent8</span>
         </div>
-        <button className="p-2 hover:bg-bg-secondary rounded-full transition-colors text-text-secondary">
-            <Settings size={20} />
-        </button>
+        
+        <div className="flex items-center gap-2">
+            <button 
+                onClick={toggleBrowserFullScreen}
+                className="p-2 hover:bg-muted rounded-md transition-colors text-muted-foreground hover:text-foreground hidden sm:block"
+                title={isFullscreen ? "Exit Full Screen" : "Enter Full Screen"}
+            >
+                {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+            </button>
+            <button 
+                onClick={toggleSettings}
+                className="p-2 hover:bg-muted rounded-md transition-colors text-muted-foreground hover:text-foreground"
+            >
+                <Settings size={18} />
+            </button>
+        </div>
       </header>
 
       {/* Main Content Area */}
       <main className="flex-1 flex overflow-hidden relative">
         
-        {/* Left Panel: Chat */}
-        <div 
-          className={`
-            transition-all duration-500 ease-[cubic-bezier(0.25,0.8,0.25,1)] flex flex-col border-r border-border-subtle bg-bg-primary z-10
-            ${viewMode === 'chat-only' ? 'w-full max-w-5xl mx-auto border-r-0' : 'w-[350px] min-w-[350px]'}
-            ${rightPanelCollapsed && viewMode !== 'chat-only' ? '!w-full !max-w-none' : ''}
-          `}
-        >
-          <ChatPanel />
-        </div>
+        {/* Left Panel: Chat Sidebar */}
+        <AnimatePresence initial={false} mode="layout">
+          {(!isMobile || (isMobile && viewMode === 'chat-only')) && isSidebarOpen && (
+            <motion.div 
+              initial={{ width: viewMode === 'chat-only' ? '100%' : 0, opacity: 0 }}
+              animate={{ 
+                width: isMobile 
+                  ? '100%' 
+                  : (viewMode === 'chat-only' ? '100%' : '400px'),
+                opacity: 1 
+              }}
+              exit={{ width: 0, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 350, damping: 30 }}
+              className={`
+                flex flex-col border-r border-border bg-background z-20 h-full relative
+                ${viewMode === 'chat-only' ? 'w-full' : 'shrink-0'}
+              `}
+            >
+              <ChatPanel />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {/* Right Panel: Workflow/Preview */}
-        <div 
-          className={`
-             flex-1 flex flex-col bg-bg-secondary relative transition-all duration-500 ease-[cubic-bezier(0.25,0.8,0.25,1)]
-             ${viewMode === 'chat-only' ? 'translate-x-full absolute right-0 w-0 opacity-0' : 'translate-x-0 opacity-100'}
-             ${rightPanelCollapsed ? 'w-0 hidden' : ''}
-          `}
-        >
-           {/* Right Panel Header/Tabs */}
-           <div className="h-12 border-b border-border-subtle bg-bg-secondary flex items-center justify-between px-4">
-              <div className="flex gap-6 h-full">
-                  <button 
-                    onClick={() => setTab('workflow')}
-                    className={`h-full text-sm font-medium border-b-2 transition-colors px-2 ${activeTab === 'workflow' ? 'border-accent-primary text-text-primary' : 'border-transparent text-text-secondary hover:text-text-primary'}`}
-                  >
-                      Workflow
-                  </button>
-                  <button 
-                    onClick={() => setTab('preview')}
-                    className={`h-full text-sm font-medium border-b-2 transition-colors px-2 ${activeTab === 'preview' ? 'border-accent-primary text-text-primary' : 'border-transparent text-text-secondary hover:text-text-primary'}`}
-                  >
-                      Preview
-                  </button>
-              </div>
-              <div className="flex items-center gap-2">
-                  <button onClick={toggleCollapse} className="p-1.5 hover:bg-bg-tertiary rounded text-text-secondary" title="Expand Chat">
-                      {rightPanelCollapsed ? <PanelLeftClose size={18} /> : <Maximize2 size={16} />}
-                  </button>
-              </div>
-           </div>
+        {/* Right Panel: Workflow/Preview Canvas */}
+        <AnimatePresence initial={false}>
+          {(viewMode === 'split-view') && (
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 100 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+              className={`
+                 flex-1 flex flex-col bg-muted/10 relative h-full overflow-hidden
+                 ${isMobile ? 'absolute inset-0 z-30 bg-background' : ''}
+              `}
+            >
+               {/* Mobile Header for Right Panel */}
+               {isMobile && (
+                 <div className="h-12 border-b border-border flex items-center px-4 bg-background shrink-0">
+                    <button 
+                      onClick={() => useStore.getState().toggleViewMode()} 
+                      className="text-xs font-medium text-muted-foreground flex items-center gap-1"
+                    >
+                      ← Back to Chat
+                    </button>
+                 </div>
+               )}
 
-           {/* Content */}
-           <div className="flex-1 relative">
-                {activeTab === 'workflow' ? <WorkflowPanel /> : <PreviewPanel />}
-           </div>
-        </div>
+               {/* Right Panel Tabs & Controls */}
+               <div className="h-12 border-b border-border bg-background/50 backdrop-blur-sm flex items-center justify-between px-4 shrink-0">
+                  <div className="flex gap-1 bg-muted/50 p-1 rounded-lg">
+                      {['workflow', 'preview'].map((tab) => (
+                        <button 
+                          key={tab}
+                          onClick={() => setTab(tab as any)}
+                          className={`
+                            px-4 py-1 text-xs font-medium rounded-md transition-all duration-200
+                            ${activeTab === tab 
+                              ? 'bg-background text-foreground shadow-sm' 
+                              : 'text-muted-foreground hover:text-foreground'}
+                          `}
+                        >
+                          {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                        </button>
+                      ))}
+                  </div>
+                  
+                  {!isMobile && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                       {rightPanelCollapsed && <span className="text-[10px] uppercase tracking-wider font-semibold">Focus Mode</span>}
+                    </div>
+                  )}
+               </div>
 
-        {/* Floating Expand Button (Visible only when split view is active but collapsed) */}
-        {viewMode === 'split-view' && rightPanelCollapsed && (
-             <button 
-                onClick={toggleCollapse}
-                className="absolute right-6 top-6 z-50 bg-bg-tertiary border border-border-subtle p-2 rounded-lg shadow-lg text-text-primary hover:text-accent-primary transition-colors"
-             >
-                 <PanelLeftOpen size={20} />
-             </button>
-        )}
+               {/* Canvas Content */}
+               <div className="flex-1 relative overflow-hidden bg-[#0A0E14]">
+                    {activeTab === 'workflow' ? <WorkflowPanel /> : <PreviewPanel />}
+               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
       </main>
+
+      <SettingsModal />
     </div>
   );
 };

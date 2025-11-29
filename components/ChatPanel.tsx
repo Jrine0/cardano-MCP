@@ -1,25 +1,32 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '../store';
-import { Send, Bot, User, Sparkles, StopCircle } from 'lucide-react';
+import { Send, Bot, Sparkles, StopCircle, ArrowRight, CornerDownLeft } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const ExampleCard = ({ text, onClick }: { text: string; onClick: () => void }) => (
-  <button 
+const ExampleCard = ({ text, onClick, index }: { text: string; onClick: () => void, index: number }) => (
+  <motion.button 
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: index * 0.1 }}
     onClick={onClick}
-    className="bg-bg-secondary p-4 rounded-xl border border-border-subtle hover:border-accent-primary hover:translate-y-[-2px] transition-all text-left group w-full"
+    className="relative group overflow-hidden bg-secondary/30 hover:bg-secondary/60 p-4 rounded-xl border border-border/50 transition-all duration-300 text-left w-full hover:border-primary/30"
   >
-    <p className="text-sm text-text-primary group-hover:text-accent-primary transition-colors">"{text}"</p>
-  </button>
+    <div className="flex justify-between items-center">
+        <p className="text-sm text-foreground font-medium group-hover:text-primary transition-colors">{text}</p>
+        <ArrowRight size={14} className="opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-primary" />
+    </div>
+  </motion.button>
 );
 
 export const ChatPanel = () => {
-  const { messages, addMessage, isGenerating, startSimulation, viewMode } = useStore();
+  const { messages, isGenerating, startSimulation, viewMode } = useStore();
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
     }
   }, [messages]);
 
@@ -31,97 +38,130 @@ export const ChatPanel = () => {
     setInput('');
   };
 
-  const handleExampleClick = (text: string) => {
-    startSimulation(text);
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
   };
 
-  const isExpanded = viewMode === 'chat-only';
-
   return (
-    <div className="flex flex-col h-full bg-bg-primary relative overflow-hidden">
+    <div className="flex flex-col h-full bg-background relative w-full">
       
+      {/* Background Grid Pattern (Only visible in chat-only mode for aesthetic) */}
+      {viewMode === 'chat-only' && (
+        <div className="absolute inset-0 bg-grid-pattern opacity-[0.03] pointer-events-none" />
+      )}
+
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6" ref={scrollRef}>
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6" ref={scrollRef}>
         
         {/* Welcome State */}
         {messages.length === 0 && (
-          <div className="h-full flex flex-col justify-center items-center max-w-2xl mx-auto text-center animate-in fade-in duration-500">
-            <div className="mb-8 relative">
-              <div className="w-20 h-20 bg-accent-primary/20 rounded-2xl flex items-center justify-center mb-4 mx-auto backdrop-blur-sm">
-                <Bot size={40} className="text-accent-primary" />
+          <div className={`h-full flex flex-col justify-center items-center mx-auto text-center z-10 relative ${viewMode === 'chat-only' ? 'max-w-2xl' : 'max-w-sm'}`}>
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              className="mb-8"
+            >
+              <div className="w-12 h-12 bg-secondary/50 rounded-xl flex items-center justify-center mb-4 mx-auto border border-border/50 shadow-inner">
+                <Bot size={24} className="text-foreground/80" />
               </div>
-              <h1 className="text-3xl font-bold text-text-primary mb-2">Cardano AI Agent Builder</h1>
-              <p className="text-text-secondary">Describe your workflow in plain English. I'll build the blockchain logic for you.</p>
-            </div>
+              <h1 className={`${viewMode === 'chat-only' ? 'text-3xl md:text-4xl' : 'text-2xl'} font-bold text-foreground mb-3 tracking-tight`}>
+                Cardano Agent
+              </h1>
+              <p className="text-muted-foreground text-sm md:text-base max-w-md mx-auto leading-relaxed">
+                Describe your workflow. AI builds the blockchain logic.
+              </p>
+            </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
-              <ExampleCard text="Swap 100 ADA to DJED on the best DEX" onClick={() => handleExampleClick("Swap 100 ADA to DJED on the best DEX")} />
-              <ExampleCard text="Mint an NFT when a form is submitted" onClick={() => handleExampleClick("Mint an NFT when a form is submitted")} />
-              <ExampleCard text="Monitor ADA price and stake automatically" onClick={() => handleExampleClick("Monitor ADA price and stake automatically")} />
+            <div className="grid grid-cols-1 gap-2 w-full">
+              <ExampleCard index={0} text="Swap 100 ADA to DJED" onClick={() => startSimulation("Swap 100 ADA to DJED")} />
+              <ExampleCard index={1} text="Mint NFT on form submit" onClick={() => startSimulation("Mint NFT on form submit")} />
+              <ExampleCard index={2} text="Staking trigger at $1" onClick={() => startSimulation("Staking trigger at $1")} />
             </div>
           </div>
         )}
 
         {/* Message List */}
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-300`}
-          >
-            <div className={`
-              max-w-[85%] rounded-2xl p-4 
-              ${msg.role === 'user' 
-                ? 'bg-accent-primary text-white rounded-br-none' 
-                : 'bg-bg-secondary text-text-primary border border-border-subtle rounded-bl-none'}
-            `}>
-              <div className="flex items-center gap-2 mb-1 opacity-50 text-xs">
-                 {msg.role === 'assistant' ? <Bot size={12}/> : <User size={12}/>}
-                 <span>{msg.role === 'assistant' ? 'Agent8' : 'You'}</span>
+        <AnimatePresence mode="popLayout">
+          {messages.map((msg) => (
+            <motion.div
+              key={msg.id}
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.3 }}
+              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div className={`
+                relative max-w-[90%] rounded-2xl p-3.5 shadow-sm text-sm leading-relaxed
+                ${msg.role === 'user' 
+                  ? 'bg-primary text-primary-foreground rounded-br-sm' 
+                  : 'bg-secondary/40 border border-border/50 text-foreground rounded-bl-sm'}
+              `}>
+                {/* AI Icon for assistant messages */}
+                {msg.role === 'assistant' && (
+                  <div className="absolute -left-8 top-0 w-6 h-6 rounded-full bg-secondary/50 flex items-center justify-center border border-border/50 hidden md:flex">
+                    <Bot size={12} className="text-muted-foreground" />
+                  </div>
+                )}
+                
+                <div className="prose prose-invert prose-sm max-w-none break-words">
+                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+                </div>
               </div>
-              <div className="prose prose-invert prose-sm leading-relaxed">
-                <ReactMarkdown>{msg.content}</ReactMarkdown>
-              </div>
-            </div>
-          </div>
-        ))}
+            </motion.div>
+          ))}
+        </AnimatePresence>
         
         {isGenerating && (
-           <div className="flex justify-start animate-in fade-in">
-             <div className="bg-bg-secondary p-4 rounded-2xl rounded-bl-none border border-border-subtle flex items-center gap-2">
-                <Sparkles size={16} className="text-accent-secondary animate-pulse" />
-                <span className="text-sm text-text-secondary">Generating workflow...</span>
+           <motion.div 
+             initial={{ opacity: 0 }} 
+             animate={{ opacity: 1 }} 
+             className="flex justify-start pl-0 md:pl-9"
+           >
+             <div className="bg-secondary/20 px-3 py-2 rounded-xl rounded-bl-none border border-border/30 flex items-center gap-2">
+                <Sparkles size={14} className="text-primary animate-pulse" />
+                <span className="text-xs text-muted-foreground font-medium">Thinking...</span>
              </div>
-           </div>
+           </motion.div>
         )}
         
-        {/* Spacer for sticky input */}
         <div className="h-4"></div>
       </div>
 
       {/* Input Area */}
-      <div className="p-4 bg-bg-primary/80 backdrop-blur-md border-t border-border-subtle">
-        <form onSubmit={handleSubmit} className="relative max-w-4xl mx-auto">
-          <input
-            type="text"
+      <div className="p-4 bg-background/95 backdrop-blur border-t border-border z-20">
+        <form onSubmit={handleSubmit} className={`relative mx-auto ${viewMode === 'chat-only' ? 'max-w-3xl' : 'w-full'}`}>
+          <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Describe what you want to build..."
-            className="w-full bg-bg-secondary text-text-primary pl-4 pr-12 py-4 rounded-xl border border-border-subtle focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none transition-all shadow-lg placeholder:text-text-secondary/50"
+            onKeyDown={handleKeyDown}
+            placeholder="Describe your workflow..."
+            rows={1}
+            className="w-full bg-secondary/30 text-foreground pl-4 pr-12 py-3.5 rounded-xl border border-border/50 focus:border-primary/50 focus:bg-secondary/50 focus:ring-1 focus:ring-primary/20 focus:outline-none transition-all resize-none shadow-sm placeholder:text-muted-foreground/60 text-sm min-h-[46px] max-h-[120px]"
             disabled={isGenerating}
+            style={{ minHeight: '46px' }} 
           />
           <button
             type="submit"
             disabled={!input.trim() && !isGenerating}
             className={`
-              absolute right-2 top-2 p-2 rounded-lg transition-colors
+              absolute right-2 top-2 p-1.5 rounded-lg transition-all duration-200
               ${isGenerating 
-                ? 'bg-accent-error text-white hover:bg-red-600' 
-                : 'bg-accent-primary text-white hover:bg-blue-600 disabled:bg-gray-700 disabled:opacity-50'}
+                ? 'bg-destructive/10 text-destructive hover:bg-destructive/20' 
+                : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm disabled:opacity-50 disabled:shadow-none'}
             `}
           >
-            {isGenerating ? <StopCircle size={20} /> : <Send size={20} />}
+            {isGenerating ? <StopCircle size={16} /> : (input.trim() ? <ArrowRight size={16} /> : <CornerDownLeft size={16} className="opacity-50" />)}
           </button>
         </form>
+        {viewMode === 'chat-only' && (
+          <p className="text-center text-[10px] text-muted-foreground mt-2 opacity-40">
+            Press Enter to send
+          </p>
+        )}
       </div>
     </div>
   );

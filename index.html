@@ -2,12 +2,12 @@
 <html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>agent8 | Cardano AI Builder</title>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xyflow/react@12.3.0/dist/style.css" />
     <script>
       tailwind.config = {
@@ -19,28 +19,60 @@
               mono: ['JetBrains Mono', 'monospace'],
             },
             colors: {
-              bg: {
-                primary: '#0A0E14',
-                secondary: '#151921',
-                tertiary: '#1E2330',
+              background: '#09090b', // Zinc 950
+              foreground: '#fafafa', // Zinc 50
+              card: {
+                DEFAULT: '#18181b', // Zinc 900
+                foreground: '#fafafa',
               },
-              border: {
-                subtle: '#2D3548',
+              popover: {
+                DEFAULT: '#09090b',
+                foreground: '#fafafa',
               },
-              text: {
-                primary: '#E6E8EB',
-                secondary: '#8B92A8',
+              primary: {
+                DEFAULT: '#3b82f6', // Blue 500
+                foreground: '#ffffff',
+              },
+              secondary: {
+                DEFAULT: '#27272a', // Zinc 800
+                foreground: '#fafafa',
+              },
+              muted: {
+                DEFAULT: '#27272a', // Zinc 800
+                foreground: '#a1a1aa', // Zinc 400
               },
               accent: {
-                primary: '#3B82F6',
-                secondary: '#8B5CF6',
-                success: '#10B981',
-                warning: '#F59E0B',
-                error: '#EF4444',
-              }
+                DEFAULT: '#27272a', // Zinc 800
+                foreground: '#fafafa',
+              },
+              destructive: {
+                DEFAULT: '#ef4444',
+                foreground: '#fafafa',
+              },
+              border: '#27272a', // Zinc 800
+              input: '#27272a',
+              ring: '#3b82f6',
+            },
+            borderRadius: {
+              lg: '0.5rem',
+              md: 'calc(0.5rem - 2px)',
+              sm: 'calc(0.5rem - 4px)',
             },
             animation: {
-              'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'accordion-down': 'accordion-down 0.2s ease-out',
+              'accordion-up': 'accordion-up 0.2s ease-out',
+              'fade-in': 'fadeIn 0.5s ease-out',
+              'slide-in-up': 'slideInUp 0.5s ease-out',
+            },
+            keyframes: {
+              fadeIn: {
+                '0%': { opacity: '0' },
+                '100%': { opacity: '1' },
+              },
+              slideInUp: {
+                '0%': { transform: 'translateY(10px)', opacity: '0' },
+                '100%': { transform: 'translateY(0)', opacity: '1' },
+              }
             }
           },
         },
@@ -48,24 +80,35 @@
     </script>
     <style>
       body {
-        background-color: #0A0E14;
-        color: #E6E8EB;
-        overflow: hidden; /* App handles scrolling */
+        background-color: #09090b;
+        color: #fafafa;
+        overflow: hidden;
+        -webkit-font-smoothing: antialiased;
       }
+      
+      /* Subtle Grid Background Pattern */
+      .bg-grid-pattern {
+        background-size: 40px 40px;
+        background-image: linear-gradient(to right, #27272a 1px, transparent 1px),
+                          linear-gradient(to bottom, #27272a 1px, transparent 1px);
+        mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+        -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+      }
+
       /* Custom Scrollbar */
       ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
+        width: 6px;
+        height: 6px;
       }
       ::-webkit-scrollbar-track {
-        background: #0A0E14; 
+        background: transparent; 
       }
       ::-webkit-scrollbar-thumb {
-        background: #2D3548; 
-        border-radius: 4px;
+        background: #27272a; 
+        border-radius: 3px;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #3B82F6; 
+        background: #52525b; 
       }
     </style>
   <script type="importmap">
@@ -79,7 +122,10 @@
     "@xyflow/react": "https://aistudiocdn.com/@xyflow/react@^12.9.3",
     "@xyflow/react/": "https://aistudiocdn.com/@xyflow/react@^12.9.3/",
     "zustand": "https://aistudiocdn.com/zustand@^5.0.8",
-    "nanoid": "https://aistudiocdn.com/nanoid@^5.1.6"
+    "nanoid": "https://aistudiocdn.com/nanoid@^5.1.6",
+    "framer-motion": "https://aistudiocdn.com/framer-motion@^11.0.8",
+    "clsx": "https://aistudiocdn.com/clsx@^2.1.0",
+    "tailwind-merge": "https://aistudiocdn.com/tailwind-merge@^2.2.1"
   }
 }
 </script>

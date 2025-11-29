@@ -45,6 +45,12 @@ export interface NFTNodeData extends BaseNodeData {
 // Extend React Flow Node
 export type AppNode = Node<BaseNodeData | WalletNodeData | DEXNodeData | NFTNodeData>;
 
+export interface AppSettings {
+  openaiKey: string;
+  perplexityKey: string;
+  cardanoRpcUrl: string;
+}
+
 export interface AppState {
   viewMode: ViewMode;
   rightPanelCollapsed: boolean;
@@ -54,6 +60,8 @@ export interface AppState {
   edges: Edge[];
   logs: LogEntry[];
   isGenerating: boolean;
+  isSettingsOpen: boolean;
+  settings: AppSettings;
   
   // Actions
   addMessage: (message: Omit<Message, 'id' | 'timestamp'>) => void;
@@ -69,4 +77,6 @@ export interface AppState {
   toggleCollapse: () => void;
   startSimulation: (prompt: string) => void;
   executeWorkflow: () => void;
+  toggleSettings: () => void;
+  updateSettings: (settings: Partial<AppSettings>) => void;
 }

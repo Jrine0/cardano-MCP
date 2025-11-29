@@ -5,15 +5,17 @@ import { WalletNodeData, DEXNodeData, NFTNodeData } from '../types';
 import { useStore } from '../store';
 
 const StatusIndicator = ({ status }: { status?: string }) => {
-  if (status === 'running') return <Loader2 className="w-4 h-4 text-accent-primary animate-spin" />;
-  if (status === 'success') return <CheckCircle className="w-4 h-4 text-accent-success" />;
-  if (status === 'error') return <AlertCircle className="w-4 h-4 text-accent-error" />;
+  if (status === 'running') return <Loader2 className="w-4 h-4 text-primary animate-spin" />;
+  if (status === 'success') return <CheckCircle className="w-4 h-4 text-green-500" />;
+  if (status === 'error') return <AlertCircle className="w-4 h-4 text-destructive" />;
   return null;
 };
 
-// Common Input Style
-const inputClass = "nodrag w-full bg-bg-primary/50 border border-transparent hover:border-border-subtle focus:border-accent-primary focus:bg-bg-primary rounded px-2 py-1 text-xs text-text-primary focus:outline-none transition-all";
-const selectClass = "nodrag w-full bg-bg-primary/50 border border-transparent hover:border-border-subtle focus:border-accent-primary focus:bg-bg-primary rounded px-2 py-1 text-xs text-text-primary focus:outline-none transition-all appearance-none cursor-pointer";
+// Common UI styles
+const nodeBaseClass = "relative bg-card rounded-lg border shadow-sm transition-all duration-200";
+const nodeSelectedClass = "border-primary ring-2 ring-primary/20 shadow-lg shadow-primary/10";
+const nodeHoverClass = "hover:border-primary/50";
+const inputClass = "nodrag w-full bg-background border border-input rounded px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all";
 
 // --- Wallet Node ---
 export const WalletNode = memo(({ id, data, selected }: NodeProps<WalletNodeData>) => {
@@ -21,25 +23,23 @@ export const WalletNode = memo(({ id, data, selected }: NodeProps<WalletNodeData
 
   return (
     <>
-      <Handle type="source" position={Position.Bottom} className="!bg-accent-secondary !w-3 !h-3" />
+      <Handle type="source" position={Position.Bottom} className="!bg-purple-500 !w-3 !h-3 !border-2 !border-background" />
       <div className={`
-        relative min-w-[240px] bg-bg-secondary rounded-xl border-2 transition-all duration-300
-        ${selected 
-            ? 'border-accent-primary ring-2 ring-accent-primary/20 shadow-[0_0_30px_rgba(59,130,246,0.4)] scale-[1.02]' 
-            : 'border-border-subtle hover:border-text-secondary'}
+        ${nodeBaseClass} min-w-[240px] 
+        ${selected ? nodeSelectedClass : 'border-border'} ${nodeHoverClass}
       `}>
-         <div className="px-4 py-3 border-b border-border-subtle flex justify-between items-center bg-accent-secondary/10 rounded-t-xl">
-            <div className="flex items-center gap-2 text-accent-secondary">
-                <Wallet size={16} />
-                <span className="font-semibold text-sm">Wallet</span>
+         <div className="px-3 py-2 border-b border-border flex justify-between items-center bg-muted/30 rounded-t-lg">
+            <div className="flex items-center gap-2 text-purple-400">
+                <Wallet size={14} />
+                <span className="font-semibold text-xs uppercase tracking-wide">Wallet</span>
             </div>
             <StatusIndicator status={data.status} />
          </div>
-         <div className="p-4 space-y-3">
+         <div className="p-3 space-y-3">
             <div>
-                 <label className="text-[10px] text-text-secondary uppercase tracking-wider block mb-1">Provider</label>
+                 <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1">Provider</label>
                  <select 
-                    className={selectClass}
+                    className={inputClass}
                     value={data.walletProvider || 'nami'}
                     onChange={(e) => updateNodeData(id, { walletProvider: e.target.value })}
                  >
@@ -50,21 +50,20 @@ export const WalletNode = memo(({ id, data, selected }: NodeProps<WalletNodeData
             </div>
             
             <div>
-                 <label className="text-[10px] text-text-secondary uppercase tracking-wider block mb-1">Address</label>
-                 <div className="bg-bg-primary/30 p-1 rounded flex items-center justify-between border border-border-subtle">
+                 <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1">Address</label>
+                 <div className="flex items-center gap-2">
                     <input 
-                        className="bg-transparent text-xs font-mono text-text-primary w-full focus:outline-none px-1"
+                        className={inputClass}
                         value={data.address || ''}
                         onChange={(e) => updateNodeData(id, { address: e.target.value })}
                         placeholder="addr1..."
                     />
-                    <span className={`w-2 h-2 rounded-full shrink-0 ml-2 ${data.address ? 'bg-accent-success' : 'bg-gray-600'}`}></span>
                  </div>
             </div>
 
-            <div className="flex justify-between items-center pt-2 border-t border-border-subtle/50">
-                <span className="text-xs text-text-secondary">Balance</span>
-                <span className="font-mono text-accent-primary font-bold">{data.balance || '0 ₳'}</span>
+            <div className="flex justify-between items-center pt-2 border-t border-border">
+                <span className="text-[10px] text-muted-foreground">Balance</span>
+                <span className="font-mono text-sm font-bold text-foreground">{data.balance || '0 ₳'}</span>
             </div>
          </div>
       </div>
@@ -78,26 +77,24 @@ export const DEXNode = memo(({ id, data, selected }: NodeProps<DEXNodeData>) => 
 
   return (
     <>
-      <Handle type="target" position={Position.Top} className="!bg-accent-primary !w-3 !h-3" />
-      <Handle type="source" position={Position.Bottom} className="!bg-accent-primary !w-3 !h-3" />
+      <Handle type="target" position={Position.Top} className="!bg-primary !w-3 !h-3 !border-2 !border-background" />
+      <Handle type="source" position={Position.Bottom} className="!bg-primary !w-3 !h-3 !border-2 !border-background" />
       <div className={`
-        relative min-w-[260px] bg-bg-secondary rounded-xl border-2 transition-all duration-300
-        ${selected 
-            ? 'border-accent-primary ring-2 ring-accent-primary/20 shadow-[0_0_30px_rgba(59,130,246,0.4)] scale-[1.02]' 
-            : 'border-border-subtle'}
+        ${nodeBaseClass} min-w-[260px] 
+        ${selected ? nodeSelectedClass : 'border-border'} ${nodeHoverClass}
       `}>
-         <div className="px-4 py-3 border-b border-border-subtle flex justify-between items-center bg-accent-primary/10 rounded-t-xl">
-            <div className="flex items-center gap-2 text-accent-primary">
-                <ArrowRightLeft size={16} />
-                <span className="font-semibold text-sm">Swap</span>
+         <div className="px-3 py-2 border-b border-border flex justify-between items-center bg-muted/30 rounded-t-lg">
+            <div className="flex items-center gap-2 text-primary">
+                <ArrowRightLeft size={14} />
+                <span className="font-semibold text-xs uppercase tracking-wide">Swap</span>
             </div>
             <StatusIndicator status={data.status} />
          </div>
-         <div className="p-4 space-y-3">
+         <div className="p-3 space-y-3">
             <div>
-                <label className="text-[10px] text-text-secondary uppercase tracking-wider block mb-1">Protocol</label>
+                <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1">Protocol</label>
                 <select 
-                    className={selectClass}
+                    className={inputClass}
                     value={data.protocol || 'minswap'}
                     onChange={(e) => updateNodeData(id, { protocol: e.target.value })}
                 >
@@ -108,25 +105,25 @@ export const DEXNode = memo(({ id, data, selected }: NodeProps<DEXNodeData>) => 
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-                <div className="bg-bg-primary/30 p-2 rounded border border-border-subtle">
-                    <div className="text-[10px] text-text-secondary mb-1">From</div>
+                <div className="bg-secondary/50 p-2 rounded border border-border">
+                    <div className="text-[10px] text-muted-foreground mb-1">From</div>
                     <div className="font-bold text-sm">ADA</div>
                 </div>
-                <div className="bg-bg-primary/30 p-2 rounded border border-border-subtle">
-                    <div className="text-[10px] text-text-secondary mb-1">To</div>
+                <div className="bg-secondary/50 p-2 rounded border border-border">
+                    <div className="text-[10px] text-muted-foreground mb-1">To</div>
                     <input 
-                        className="bg-transparent font-bold text-sm w-full focus:outline-none text-text-primary"
+                        className="bg-transparent font-bold text-sm w-full focus:outline-none text-foreground placeholder:text-muted-foreground"
                         value={(data.pair || '').split('/')[1] || 'DJED'}
                         onChange={(e) => updateNodeData(id, { pair: `ADA/${e.target.value.toUpperCase()}` })}
                         placeholder="TOKEN"
                     />
                 </div>
             </div>
-            <div className="flex justify-between items-center text-xs text-text-secondary">
+            <div className="flex justify-between items-center text-xs text-muted-foreground">
                 <div className="flex items-center gap-2">
-                    <span>Amount:</span>
+                    <span>Amt:</span>
                     <input 
-                        className="nodrag bg-bg-primary/50 w-20 rounded px-1 py-0.5 text-text-primary border border-transparent focus:border-accent-primary focus:outline-none"
+                        className="nodrag bg-background w-16 rounded px-1 py-0.5 border border-input focus:ring-1 focus:ring-primary focus:outline-none text-foreground"
                         value={data.amount || 0}
                         onChange={(e) => updateNodeData(id, { amount: e.target.value })}
                         type="number"
@@ -146,40 +143,35 @@ export const NFTNode = memo(({ id, data, selected }: NodeProps<NFTNodeData>) => 
 
   return (
     <>
-      <Handle type="target" position={Position.Top} className="!bg-pink-500 !w-3 !h-3" />
-      <Handle type="source" position={Position.Bottom} className="!bg-pink-500 !w-3 !h-3" />
+      <Handle type="target" position={Position.Top} className="!bg-pink-500 !w-3 !h-3 !border-2 !border-background" />
+      <Handle type="source" position={Position.Bottom} className="!bg-pink-500 !w-3 !h-3 !border-2 !border-background" />
        <div className={`
-        relative min-w-[240px] bg-bg-secondary rounded-xl border-2 transition-all duration-300
-        ${selected 
-            ? 'border-accent-primary ring-2 ring-accent-primary/20 shadow-[0_0_30px_rgba(59,130,246,0.4)] scale-[1.02]' 
-            : 'border-border-subtle'}
+        ${nodeBaseClass} min-w-[240px] 
+        ${selected ? nodeSelectedClass : 'border-border'} ${nodeHoverClass}
       `}>
-         <div className="px-4 py-3 border-b border-border-subtle flex justify-between items-center bg-pink-500/10 rounded-t-xl">
+         <div className="px-3 py-2 border-b border-border flex justify-between items-center bg-muted/30 rounded-t-lg">
             <div className="flex items-center gap-2 text-pink-500">
-                <ImageIcon size={16} />
-                <span className="font-semibold text-sm">Mint NFT</span>
+                <ImageIcon size={14} />
+                <span className="font-semibold text-xs uppercase tracking-wide">Mint NFT</span>
             </div>
             <StatusIndicator status={data.status} />
          </div>
-         <div className="p-4 flex flex-col gap-3">
+         <div className="p-3 flex flex-col gap-3">
             <div className="flex gap-3">
-                <div className="w-16 h-16 bg-bg-tertiary rounded-lg flex items-center justify-center border border-border-subtle overflow-hidden shrink-0 group relative">
+                <div className="w-14 h-14 bg-secondary rounded-md flex items-center justify-center border border-border overflow-hidden shrink-0">
                     <img src={`https://picsum.photos/seed/${id}/200`} alt="NFT" className="w-full h-full object-cover opacity-80" />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <ImageIcon size={12} />
-                    </div>
                 </div>
                 <div className="flex-1 space-y-1">
-                    <label className="text-[10px] text-text-secondary uppercase tracking-wider block">Collection Name</label>
+                    <label className="text-[10px] text-muted-foreground uppercase tracking-wider block">Collection</label>
                     <input 
                         className={inputClass}
                         value={data.collectionName || ''}
                         onChange={(e) => updateNodeData(id, { collectionName: e.target.value })}
-                        placeholder="Collection Name"
+                        placeholder="Name"
                     />
                 </div>
             </div>
-            <div className="text-xs text-text-secondary bg-bg-primary/20 p-2 rounded">
+            <div className="text-[10px] text-muted-foreground bg-secondary/30 p-2 rounded border border-border">
                 Metadata auto-generated from workflow context.
             </div>
          </div>
@@ -192,21 +184,19 @@ export const NFTNode = memo(({ id, data, selected }: NodeProps<NFTNodeData>) => 
 export const EmailNode = memo(({ id, data, selected }: NodeProps<any>) => {
     return (
       <>
-        <Handle type="target" position={Position.Top} className="!bg-accent-success !w-3 !h-3" />
+        <Handle type="target" position={Position.Top} className="!bg-green-500 !w-3 !h-3 !border-2 !border-background" />
          <div className={`
-          relative min-w-[200px] bg-bg-secondary rounded-xl border-2 transition-all duration-300
-          ${selected 
-            ? 'border-accent-primary ring-2 ring-accent-primary/20 shadow-[0_0_30px_rgba(59,130,246,0.4)] scale-[1.02]' 
-            : 'border-border-subtle'}
+          ${nodeBaseClass} min-w-[200px] 
+          ${selected ? nodeSelectedClass : 'border-border'} ${nodeHoverClass}
         `}>
-           <div className="px-4 py-3 border-b border-border-subtle flex justify-between items-center bg-accent-success/10 rounded-t-xl">
-              <div className="flex items-center gap-2 text-accent-success">
-                  <Mail size={16} />
-                  <span className="font-semibold text-sm">Notify</span>
+           <div className="px-3 py-2 border-b border-border flex justify-between items-center bg-muted/30 rounded-t-lg">
+              <div className="flex items-center gap-2 text-green-500">
+                  <Mail size={14} />
+                  <span className="font-semibold text-xs uppercase tracking-wide">Notify</span>
               </div>
               <StatusIndicator status={data.status} />
            </div>
-           <div className="p-4 text-xs text-text-secondary">
+           <div className="p-3 text-xs text-muted-foreground">
               Sends email upon completion.
            </div>
         </div>
