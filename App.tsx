@@ -1,12 +1,19 @@
 import React from 'react';
 import { ReactFlowProvider } from '@xyflow/react';
 import { Layout } from './components/Layout';
+import { ErrorBoundary } from './src/components/common/ErrorBoundary';
+
+import { MeshProvider } from '@meshsdk/react';
 
 function App() {
   return (
-    <ReactFlowProvider>
-      <Layout />
-    </ReactFlowProvider>
+    <ErrorBoundary>
+      <MeshProvider>
+        <ReactFlowProvider>
+          <Layout />
+        </ReactFlowProvider>
+      </MeshProvider>
+    </ErrorBoundary>
   );
 }
 

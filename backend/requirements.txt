@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+python-socketio
+openai
+httpx
+python-dotenv
+websockets
+slowapi

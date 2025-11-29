@@ -2,8 +2,26 @@ import { create } from 'zustand';
 import { AppState, Message, AppNode, LogEntry } from './types';
 import { addEdge, applyNodeChanges, applyEdgeChanges } from '@xyflow/react';
 import { nanoid } from 'nanoid';
+import { io } from 'socket.io-client';
 
-// Helper to generate mock nodes based on prompt
+// Get backend URL from environment variable or default to localhost
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:8000';
+const socket = io(SOCKET_URL);
+
+// Socket connection monitoring
+socket.on('connect', () => {
+  console.log('✅ Connected to backend:', SOCKET_URL);
+});
+
+socket.on('disconnect', () => {
+  console.log('❌ Disconnected from backend');
+});
+
+socket.on('connect_error', (error) => {
+  console.error('🔴 Connection error:', error.message);
+});
+
+// Helper to generate mock nodes based on prompt (DEPRECATED - kept for reference)
 const generateMockWorkflow = (prompt: string): { nodes: AppNode[]; edges: any[] } => {
   const nodes: AppNode[] = [];
   const edges: any[] = [];
@@ -17,20 +35,20 @@ const generateMockWorkflow = (prompt: string): { nodes: AppNode[]; edges: any[] 
     id: walletId,
     type: 'wallet',
     position: { x: centerX - 140, y: currentY },
-    data: { 
-        label: 'Cardano Wallet', 
-        status: 'idle', 
-        walletProvider: 'nami', 
-        balance: '1,450 ₳', 
-        address: 'addr1...8x92',
-        isConnected: false 
+    data: {
+      label: 'Cardano Wallet',
+      status: 'idle',
+      walletProvider: 'nami',
+      balance: '1,450 ₳',
+      address: 'addr1...8x92',
+      isConnected: false
     },
   });
   currentY += 180;
   let lastId = walletId;
 
   // 2. Logic based on keywords
-  
+
   // -- DEX / SWAP --
   if (p.includes('swap') || p.includes('dex') || p.includes('trade')) {
     const dexId = `node-dex-${nanoid()}`;
@@ -58,7 +76,7 @@ const generateMockWorkflow = (prompt: string): { nodes: AppNode[]; edges: any[] 
     lastId = nftId;
     currentY += 180;
   }
-  
+
   // -- STAKING --
   if (p.includes('stake') || p.includes('staking') || p.includes('delegate') || p.includes('pool')) {
     const stakeId = `node-stake-${nanoid()}`;
@@ -72,7 +90,7 @@ const generateMockWorkflow = (prompt: string): { nodes: AppNode[]; edges: any[] 
     lastId = stakeId;
     currentY += 180;
   }
-  
+
   // -- SMART CONTRACT --
   if (p.includes('contract') || p.includes('script') || p.includes('vesting') || p.includes('dao')) {
     const contractId = `node-contract-${nanoid()}`;
@@ -86,15 +104,15 @@ const generateMockWorkflow = (prompt: string): { nodes: AppNode[]; edges: any[] 
     lastId = contractId;
     currentY += 180;
   }
-  
+
   // 3. Terminator Node (Email/Notification)
   // Only add if not too simple, or if specifically requested, or default.
   const emailId = 'node-email-1';
   nodes.push({
-      id: emailId,
-      type: 'email',
-      position: { x: centerX, y: currentY },
-      data: { label: 'Notify User', status: 'idle' }
+    id: emailId,
+    type: 'email',
+    position: { x: centerX, y: currentY },
+    data: { label: 'Notify User', status: 'idle' }
   });
   edges.push({ id: `e-${lastId}-${emailId}`, source: lastId, target: emailId, animated: true, style: { stroke: '#10B981', strokeWidth: 2 } });
 
@@ -128,10 +146,10 @@ export const useStore = create<AppState>((set, get) => ({
 
   setNodes: (nodes) => set({ nodes }),
   addNode: (node) => set((state) => ({ nodes: [...state.nodes, node] })),
-  
+
   updateNodeStatus: (nodeId, status) => {
     set((state) => ({
-      nodes: state.nodes.map((n) => 
+      nodes: state.nodes.map((n) =>
         n.id === nodeId ? { ...n, data: { ...n.data, status } } : n
       )
     }));
@@ -139,133 +157,151 @@ export const useStore = create<AppState>((set, get) => ({
 
   updateNodeData: (nodeId, data) => {
     set((state) => ({
-      nodes: state.nodes.map((n) => 
+      nodes: state.nodes.map((n) =>
         n.id === nodeId ? { ...n, data: { ...n.data, ...data } } : n
       )
     }));
   },
 
-  onNodesChange: (changes) => set((state) => ({ 
-    nodes: applyNodeChanges(changes, state.nodes) as AppNode[] 
-  })),
-  
-  onEdgesChange: (changes) => set((state) => ({ 
-    edges: applyEdgeChanges(changes, state.edges) 
-  })),
-  
-  onConnect: (connection) => set((state) => ({ 
-    edges: addEdge({ ...connection, animated: true, style: { stroke: '#8B92A8', strokeWidth: 2 } }, state.edges) 
+  onNodesChange: (changes) => set((state) => ({
+    nodes: applyNodeChanges(changes, state.nodes) as AppNode[]
   })),
 
-  toggleViewMode: () => set((state) => ({ 
-    viewMode: state.viewMode === 'chat-only' ? 'split-view' : 'chat-only' 
+  onEdgesChange: (changes) => set((state) => ({
+    edges: applyEdgeChanges(changes, state.edges)
+  })),
+
+  onConnect: (connection) => set((state) => ({
+    edges: addEdge({ ...connection, animated: true, style: { stroke: '#8B92A8', strokeWidth: 2 } }, state.edges)
+  })),
+
+  toggleViewMode: () => set((state) => ({
+    viewMode: state.viewMode === 'chat-only' ? 'split-view' : 'chat-only'
   })),
 
   setTab: (activeTab) => set({ activeTab }),
-  
-  toggleCollapse: () => set((state) => ({ 
-    rightPanelCollapsed: !state.rightPanelCollapsed 
+
+  toggleCollapse: () => set((state) => ({
+    rightPanelCollapsed: !state.rightPanelCollapsed
   })),
-  
+
   toggleSettings: () => set((state) => ({ isSettingsOpen: !state.isSettingsOpen })),
-  
+
   updateSettings: (newSettings) => set((state) => ({ settings: { ...state.settings, ...newSettings } })),
 
   startSimulation: async (prompt) => {
     const state = get();
     state.addMessage({ role: 'user', content: prompt });
-    set({ isGenerating: true });
+    set({ isGenerating: true, nodes: [], edges: [], logs: [] });
 
-    // 1. Simulate "thinking" delay and switch view
+    // Switch view mode
     setTimeout(() => {
-       if (get().viewMode === 'chat-only') {
-           set({ viewMode: 'split-view' });
-       }
-    }, 800);
+      if (get().viewMode === 'chat-only') {
+        set({ viewMode: 'split-view' });
+      }
+    }, 500);
 
-    // 2. Generate response text
-    setTimeout(() => {
-        let responseText = `I've designed a Cardano workflow for you based on "${prompt}".\n\n`;
-        const p = prompt.toLowerCase();
-        
-        if (p.includes('swap')) responseText += `- **DEX Swap** (Minswap)\n`;
-        if (p.includes('nft')) responseText += `- **NFT Minting** (CIP-25)\n`;
-        if (p.includes('stake')) responseText += `- **Staking Delegation**\n`;
-        if (p.includes('contract')) responseText += `- **Smart Contract Interaction**\n`;
-        
-        responseText += `- **Notification**\n\nYou can configure the specific parameters in the workflow panel.`;
-        
-        state.addMessage({ role: 'assistant', content: responseText });
-        
-        // 3. Generate Workflow Nodes
-        const { nodes, edges } = generateMockWorkflow(prompt);
-        
-        // Add nodes incrementally for effect
-        set({ nodes: [], edges: [] });
-        
-        let i = 0;
-        const interval = setInterval(() => {
-            if (i >= nodes.length) {
-                clearInterval(interval);
-                set({ isGenerating: false, edges }); // Add edges at the end
-                return;
-            }
-            const node = nodes[i];
-            get().addNode(node);
-            
-            // Log creation
-            set(s => ({ logs: [...s.logs, {
-                id: nanoid(),
-                timestamp: Date.now(),
-                level: 'info',
-                message: `Created node: ${node.data.label}`,
-                nodeId: node.id
-            }]}));
+    // Emit event to backend
+    socket.emit('generate_workflow', { prompt });
 
-            i++;
-        }, 500);
+    // Define named handler functions for proper cleanup
+    const handleNodeCreated = (data: any) => {
+      console.log('Node created:', data);
+      const node = data.node;
+      get().addNode(node);
 
-    }, 1500);
+      set(s => ({
+        logs: [...s.logs, {
+          id: nanoid(),
+          timestamp: Date.now(),
+          level: 'info',
+          message: `Created node: ${node.data.label || node.type}`,
+          nodeId: node.id
+        }]
+      }));
+    };
+
+    const handleEdgeCreated = (data: any) => {
+      console.log('Edge created:', data);
+      const edge = data.edge;
+      set((state) => ({
+        edges: addEdge({ ...edge, animated: true, style: { stroke: '#8B92A8', strokeWidth: 2 } }, state.edges)
+      }));
+    };
+
+    const handleWorkflowComplete = () => {
+      console.log('Workflow complete');
+      set({ isGenerating: false });
+      state.addMessage({ role: 'assistant', content: "I've generated the workflow based on your request." });
+      
+      // Clean up all listeners after completion
+      socket.off('node_created', handleNodeCreated);
+      socket.off('edge_created', handleEdgeCreated);
+      socket.off('workflow_complete', handleWorkflowComplete);
+      socket.off('error', handleError);
+    };
+
+    const handleError = (data: any) => {
+      console.error('Socket error:', data);
+      set({ isGenerating: false });
+      state.addMessage({ role: 'assistant', content: `Error: ${data.message}` });
+      
+      // Clean up all listeners on error
+      socket.off('node_created', handleNodeCreated);
+      socket.off('edge_created', handleEdgeCreated);
+      socket.off('workflow_complete', handleWorkflowComplete);
+      socket.off('error', handleError);
+    };
+
+    // Attach the named handlers
+    socket.on('node_created', handleNodeCreated);
+    socket.on('edge_created', handleEdgeCreated);
+    socket.on('workflow_complete', handleWorkflowComplete);
+    socket.on('error', handleError);
   },
 
   executeWorkflow: () => {
-      const { nodes } = get();
-      set({ activeTab: 'preview', logs: [] });
-      
-      let i = 0;
-      
-      const runNode = () => {
-          if (i >= nodes.length) return;
-          
-          const node = nodes[i];
-          // Set running
-          get().updateNodeStatus(node.id, 'running');
-          
-          set(s => ({ logs: [...s.logs, {
-              id: nanoid(),
-              timestamp: Date.now(),
-              level: 'info',
-              message: `Executing ${node.data.label}...`,
-              nodeId: node.id
-          }]}));
+    const { nodes } = get();
+    set({ activeTab: 'preview', logs: [] });
 
-          setTimeout(() => {
-              // Set success
-              get().updateNodeStatus(node.id, 'success');
-              
-              set(s => ({ logs: [...s.logs, {
-                  id: nanoid(),
-                  timestamp: Date.now(),
-                  level: 'success',
-                  message: `Successfully executed ${node.data.label}`,
-                  nodeId: node.id
-              }]}));
+    let i = 0;
 
-              i++;
-              runNode();
-          }, 1000);
-      };
+    const runNode = () => {
+      if (i >= nodes.length) return;
 
-      runNode();
+      const node = nodes[i];
+      // Set running
+      get().updateNodeStatus(node.id, 'running');
+
+      set(s => ({
+        logs: [...s.logs, {
+          id: nanoid(),
+          timestamp: Date.now(),
+          level: 'info',
+          message: `Executing ${node.data.label}...`,
+          nodeId: node.id
+        }]
+      }));
+
+      setTimeout(() => {
+        // Set success
+        get().updateNodeStatus(node.id, 'success');
+
+        set(s => ({
+          logs: [...s.logs, {
+            id: nanoid(),
+            timestamp: Date.now(),
+            level: 'success',
+            message: `Successfully executed ${node.data.label}`,
+            nodeId: node.id
+          }]
+        }));
+
+        i++;
+        runNode();
+      }, 1000);
+    };
+
+    runNode();
   }
 }));

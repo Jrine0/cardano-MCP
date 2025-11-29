@@ -56,31 +56,24 @@ export const ChatPanel = () => {
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6" ref={scrollRef}>
         
-        {/* Welcome State */}
+        {/* Welcome State - Simplified since we have StartScreen */}
         {messages.length === 0 && (
-          <div className={`h-full flex flex-col justify-center items-center mx-auto text-center z-10 relative ${viewMode === 'chat-only' ? 'max-w-2xl' : 'max-w-sm'}`}>
+          <div className="h-full flex flex-col justify-center items-center mx-auto text-center z-10 relative max-w-md px-4">
             <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="mb-8"
             >
-              <div className="w-12 h-12 bg-secondary/50 rounded-xl flex items-center justify-center mb-4 mx-auto border border-border/50 shadow-inner">
-                <Bot size={24} className="text-foreground/80" />
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4 mx-auto shadow-lg">
+                <Sparkles size={28} className="text-white" />
               </div>
-              <h1 className={`${viewMode === 'chat-only' ? 'text-3xl md:text-4xl' : 'text-2xl'} font-bold text-foreground mb-3 tracking-tight`}>
-                Cardano Agent
-              </h1>
-              <p className="text-muted-foreground text-sm md:text-base max-w-md mx-auto leading-relaxed">
-                Describe your workflow. AI builds the blockchain logic.
+              <h2 className="text-xl font-bold text-foreground mb-2 tracking-tight">
+                Let's build something amazing
+              </h2>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                Your AI assistant is ready to create Cardano workflows
               </p>
             </motion.div>
-
-            <div className="grid grid-cols-1 gap-2 w-full">
-              <ExampleCard index={0} text="Swap 100 ADA to DJED" onClick={() => startSimulation("Swap 100 ADA to DJED")} />
-              <ExampleCard index={1} text="Mint NFT on form submit" onClick={() => startSimulation("Mint NFT on form submit")} />
-              <ExampleCard index={2} text="Staking trigger at $1" onClick={() => startSimulation("Staking trigger at $1")} />
-            </div>
           </div>
         )}
 

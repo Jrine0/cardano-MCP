@@ -12,6 +12,14 @@ dist
 dist-ssr
 *.local
 
+# Environment variables (IMPORTANT: Keep these secret!)
+.env
+.env.local
+.env.production
+.env.development
+backend/.env
+backend/.env.local
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -22,3 +30,29 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+backend/venv/
+backend/.venv/
+backend/env/
+backend/ENV/
+
+# Testing
+coverage/
+.nyc_output/
+*.coverage
+htmlcov/
+.pytest_cache/
+
+# Build artifacts
+build/
+*.egg-info/
+
+# Temporary files
+tmp_*
+.tmp/
