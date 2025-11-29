@@ -1,0 +1,14 @@
+{
+    "name": "Auto Trading Configuration",
+    "trigger": {
+        "price": ">= 150"
+    },
+    "actions": [
+        "buy SOL 10x",
+        "send notification to trader@example.com"
+    ],
+    "settings": {
+        "stopLoss": 140,
+        "takeProfit": 180
+    }
+}
