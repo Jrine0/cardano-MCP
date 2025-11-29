@@ -1,0 +1,139 @@
+{
+  "jsonData": {
+    "id": "wf-1764437849078",
+    "name": "Buy 10 shares of AAPL at 150 and sell at 180, TP 5",
+    "triggers": [
+      {
+        "id": "t1",
+        "type": "PriceTrigger",
+        "asset": "BTC",
+        "operator": "<=",
+        "value": 10
+      },
+      {
+        "id": "t2",
+        "type": "PriceTrigger",
+        "asset": "BTC",
+        "operator": ">=",
+        "value": 150
+      },
+      {
+        "id": "t3",
+        "type": "PriceTrigger",
+        "asset": "BTC",
+        "operator": ">=",
+        "value": 180
+      },
+      {
+        "id": "t4",
+        "type": "PriceTrigger",
+        "asset": "BTC",
+        "operator": ">=",
+        "value": 5
+      },
+      {
+        "id": "t5",
+        "type": "PriceTrigger",
+        "asset": "BTC",
+        "operator": ">=",
+        "value": 50000
+      },
+      {
+        "id": "t6",
+        "type": "PriceTrigger",
+        "asset": "BTC",
+        "operator": ">=",
+        "value": 2
+      },
+      {
+        "id": "t7",
+        "type": "PriceTrigger",
+        "asset": "BTC",
+        "operator": ">=",
+        "value": 0.5
+      },
+      {
+        "id": "t8",
+        "type": "PriceTrigger",
+        "asset": "BTC",
+        "operator": ">=",
+        "value": 2000
+      },
+      {
+        "id": "t9",
+        "type": "PriceTrigger",
+        "asset": "BTC",
+        "operator": ">=",
+        "value": 2500
+      },
+      {
+        "id": "t10",
+        "type": "PriceTrigger",
+        "asset": "BTC",
+        "operator": ">=",
+        "value": 22000
+      },
+      {
+        "id": "t11",
+        "type": "PriceTrigger",
+        "asset": "BTC",
+        "operator": ">=",
+        "value": 21500
+      }
+    ],
+    "actions": [
+      {
+        "id": "a1",
+        "type": "TradeAction",
+        "side": "buy",
+        "asset": "BTC",
+        "amount": 10,
+        "takeProfitPercent": 5,
+        "stopLossPercent": 2
+      },
+      {
+        "id": "a2",
+        "type": "TradeAction",
+        "side": "sell",
+        "asset": "BTC",
+        "amount": 1
+      },
+      {
+        "id": "a3",
+        "type": "TradeAction",
+        "side": "long",
+        "asset": "BTC",
+        "amount": 1,
+        "leverage": 10
+      },
+      {
+        "id": "a4",
+        "type": "TradeAction",
+        "side": "buy",
+        "asset": "BTC",
+        "amount": 0.5
+      },
+      {
+        "id": "a5",
+        "type": "TradeAction",
+        "side": "short",
+        "asset": "BTC",
+        "amount": 1
+      }
+    ],
+    "edges": [
+      { "from": "t1", "to": "a1" },
+      { "from": "t2", "to": "a2" },
+      { "from": "t3", "to": "a3" },
+      { "from": "t4", "to": "a4" },
+      { "from": "t5", "to": "a5" },
+      { "from": "t6", "to": "a1" },
+      { "from": "t7", "to": "a1" },
+      { "from": "t8", "to": "a1" },
+      { "from": "t9", "to": "a1" },
+      { "from": "t10", "to": "a1" },
+      { "from": "t11", "to": "a1" }
+    ]
+  },
+  "wallet": "addr_test1qpvh7d3wrwnehv0ws6enmpw8dsfqd45nkr4787q99z7u62ve0m9nq86xn55hz6k3jn7uasytg58kkf89jqscyhaf2q2spk4u7a"
+}

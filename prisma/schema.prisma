@@ -4,15 +4,28 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model Workflow {
   id        String   @id @default(cuid())
-  name      String
   userId    String
-  nodes     Json
-  edges     Json
+  name      String
+  jsonData  Json
+  status    String   @default("active")
+  wallet    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  executions Execution[]
+}
+
+model Execution {
+  id          String   @id @default(cuid())
+  workflowId  String
+  wallet      String
+  txId        String?
+  status      String
+  result      Json?
+  triggeredAt DateTime @default(now())
+  workflow    Workflow @relation(fields: [workflowId], references: [id])
 }
