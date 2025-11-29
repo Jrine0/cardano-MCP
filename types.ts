@@ -29,21 +29,44 @@ export interface WalletNodeData extends BaseNodeData {
   address?: string;
   balance?: string;
   walletProvider?: 'nami' | 'eternl' | 'lace';
+  isConnected?: boolean;
 }
 
 export interface DEXNodeData extends BaseNodeData {
   protocol: 'minswap' | 'sundaeswap' | 'genius';
   pair: string;
   amount: string;
+  slippage?: string;
 }
 
 export interface NFTNodeData extends BaseNodeData {
   collectionName: string;
+  assetName?: string;
   imageUrl?: string;
+  metadata?: string;
+}
+
+export interface StakingNodeData extends BaseNodeData {
+  poolId?: string;
+  amount?: string;
+  apy?: string;
+}
+
+export interface SmartContractNodeData extends BaseNodeData {
+  contractAddress?: string;
+  functionName?: string;
+  datum?: string;
 }
 
 // Extend React Flow Node
-export type AppNode = Node<BaseNodeData | WalletNodeData | DEXNodeData | NFTNodeData>;
+export type AppNode = Node<
+  | BaseNodeData 
+  | WalletNodeData 
+  | DEXNodeData 
+  | NFTNodeData 
+  | StakingNodeData 
+  | SmartContractNodeData
+>;
 
 export interface AppSettings {
   openaiKey: string;

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { ReactFlow, Background, Controls, BackgroundVariant, addEdge, Connection } from '@xyflow/react';
 import { useStore } from '../store';
-import { WalletNode, DEXNode, NFTNode, EmailNode } from './CustomNodes';
+import { WalletNode, DEXNode, NFTNode, EmailNode, StakingNode, SmartContractNode } from './CustomNodes';
 
 export const WorkflowPanel = () => {
   const { nodes, edges, onNodesChange, onEdgesChange, onConnect } = useStore();
@@ -10,7 +10,9 @@ export const WorkflowPanel = () => {
     wallet: WalletNode,
     dex: DEXNode,
     nft: NFTNode,
-    email: EmailNode
+    email: EmailNode,
+    staking: StakingNode,
+    contract: SmartContractNode
   }), []);
 
   return (
